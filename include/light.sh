@@ -30,6 +30,7 @@ vec3 aureliaLighting(sampler2D lm, vec2 uv, float sunUp) {
 
   float skyShare = smoothstep(0.3, 1.0, uv.y);
   light *= mix(1.0, AURELIA_SUN_INTENSITY, skyShare * sunUp);
+  light *= mix(vec3_splat(1.0), AURELIA_SUN_WARMTH, skyShare * sunUp);
 
   light += aureliaTorch(uv.x) / (1.0 + aureliaLuma(light));
 
