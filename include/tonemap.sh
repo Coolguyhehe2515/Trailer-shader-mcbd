@@ -4,28 +4,7 @@
 #include <config.sh>
 
 vec3 aureliaTonemap(vec3 x) {
-  float P = UCH_MAX;
-  float a = UCH_CONTRAST;
-  float m = UCH_LINEAR_START;
-  float l = UCH_LINEAR_LEN;
-  float c = UCH_BLACK;
-  float b = UCH_PEDESTAL;
-
-  float l0 = ((P - m) * l) / a;
-  float S0 = m + l0;
-  float S1 = m + a * l0;
-  float C2 = (a * P) / (P - S1);
-  float CP = -C2 / P;
-
-  vec3 w0 = vec3_splat(1.0) - smoothstep(vec3_splat(0.0), vec3_splat(m), x);
-  vec3 w2 = step(vec3_splat(S0), x);
-  vec3 w1 = vec3_splat(1.0) - w0 - w2;
-
-  vec3 T = m * pow(x / m, vec3_splat(c)) + vec3_splat(b);
-  vec3 L = vec3_splat(m) + a * (x - vec3_splat(m));
-  vec3 S = vec3_splat(P) - (P - S1) * exp(CP * (x - vec3_splat(S0)));
-
-  return clamp(T * w0 + L * w1 + S * w2, 0.0, 1.0);
+  return clamp(x * (1.0 + x * AURELIA_WHITE_SCALE) / (1.0 + x), 0.0, 1.0);
 }
 
 vec3 aureliaSaturate(vec3 c, float s) {
@@ -38,6 +17,16 @@ vec3 aureliaColorGrade(vec3 c) {
   c *= AURELIA_EXPOSURE;
   c = aureliaTonemap(c);
   c = sqrt(c);
+
+  float l = dot(c, vec3(0.2126, 0.7152, 0.0722));
+  c *= mix(AURELIA_GRADE_SHADOW, AURELIA_GRADE_HIGHLIGHT, smoothstep(0.2, 0.8, l));
+
+  float sat = max(c.r, max(c.g, c.b)) - min(c.r, min(c.g, c.b));
+  c = mix(vec3_splat(l), c, 1.0 + AURELIA_VIBRANCE * (1.0 - clamp(sat, 0.0, 1.0)));
+
+  c = clamp(c, 0.0, 1.0);
+  c = mix(c, c * c * (3.0 - 2.0 * c), AURELIA_GRADE_CONTRAST);
+
   return aureliaSaturate(c, AURELIA_SATURATION);
 }
 
