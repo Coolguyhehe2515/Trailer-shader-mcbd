@@ -12,6 +12,10 @@ vec3 aureliaSunDir(float timeOfDay) {
   return vec3(sin(a), cos(a), 0.0);
 }
 
+highp vec2 aureliaCloudSnap(highp vec2 p) {
+  return (floor(p * AURELIA_CLOUD_BLOCK) + 0.5) / AURELIA_CLOUD_BLOCK;
+}
+
 highp float aureliaNoiseTile(highp vec2 p, highp float period) {
   highp vec2 i = floor(p);
   highp vec2 f = fract(p);
@@ -57,6 +61,7 @@ float aureliaCloudShadow(highp vec3 worldPos, highp vec2 camXZ, highp float time
 
   highp vec2 world = camXZ + worldPos.xz + sunDir.xz / max(sunDir.y, 0.15) * max(AURELIA_CLOUD_ALTITUDE - worldPos.y, 0.0);
   highp vec2 p = (world + vec2(1.0, 0.4) * time * AURELIA_CLOUD_SPEED) * AURELIA_CLOUD_SCALE;
+  p = aureliaCloudSnap(p);
 
   float shade = mix(AURELIA_CLOUD_SHADE, 0.7, aureliaRain);
   return 1.0 - shade * aureliaCloudDensityCoarse(p, time) * strength;
@@ -87,6 +92,10 @@ vec4 aureliaCloudShade(vec3 dir, float d, float dl, vec3 sunDir, vec3 fogColor) 
 
   float gray = dot(col, vec3(0.3333, 0.3333, 0.3333));
   col = mix(col, vec3_splat(gray * 0.85), aureliaRain * 0.5);
+  vec3 flatCol = AURELIA_CLOUD_FLAT_COLOR * mix(0.08, 1.0, dayF);
+  flatCol *= mix(vec3_splat(1.0), sunCol, twi * 0.7);
+  flatCol *= 1.0 - AURELIA_CLOUD_RAIN_DARK * aureliaRain * 0.6;
+  col = mix(col, flatCol, AURELIA_CLOUD_FLAT);
 
   float horizon = smoothstep(0.0, 0.35, up);
   col = mix(fogColor, col, 0.4 + 0.6 * horizon);
@@ -103,6 +112,8 @@ vec4 aureliaCloudsRaw(vec3 dir, highp vec2 camXZ, highp float time, vec3 sunDir,
 
   highp vec2 world = camXZ + dir.xz / max(up, 0.04) * AURELIA_CLOUD_ALTITUDE;
   highp vec2 p = (world + vec2(1.0, 0.4) * time * AURELIA_CLOUD_SPEED) * AURELIA_CLOUD_SCALE;
+  p = aureliaCloudSnap(p);
+  
 
   highp float w = aureliaCloudWeather(p, time);
   highp float baseShape = aureliaCloudBase(p, w);
@@ -129,6 +140,8 @@ vec4 aureliaCloudsRawTex(sampler2D tex, vec3 dir, highp vec2 camXZ, highp float 
 
   highp vec2 world = camXZ + dir.xz / max(up, 0.04) * AURELIA_CLOUD_ALTITUDE;
   highp vec2 p = (world + vec2(1.0, 0.4) * time * AURELIA_CLOUD_SPEED) * AURELIA_CLOUD_SCALE;
+  p = aureliaCloudSnap(p);
+  
 
   vec3 t0 = texture2D(tex, fract(p * 0.0625)).rgb;
   float w = texture2D(tex, fract((p * 0.2 + vec2(time * 0.003, time * 0.002)) * 0.0625)).r;
