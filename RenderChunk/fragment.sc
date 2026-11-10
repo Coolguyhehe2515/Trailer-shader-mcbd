@@ -76,6 +76,40 @@ void main() {
     diffuse.a = 1.0;
   #endif
 
+  #ifdef OPAQUE
+    highp float wcPos = v_worldPos.y + CameraPosition.y;
+    float dy_w = abs(dFdy(v_worldPos.y));
+
+    bool isOneBlockUnderwater = ((wcPos <= 62.89 && wcPos > 62.0) || (wcPos <= -60.11 && wcPos > -61.0))
+      && v_color1.b < 0.9
+      && !(dy_w < 0.0002)
+      && step(0.85, v_lightmapUV.y) * step(v_lightmapUV.y, 0.927) == 1.0;
+
+    if (isOneBlockUnderwater) {
+      float d = 0.865;
+      float bpy = fract(v_chunkPos.y);
+      vec3 foamDir = normalize(-v_worldPos);
+
+      highp vec2 offset = (d - bpy) * foamDir.xz / foamDir.y;
+      highp vec2 watpos = v_chunkPos.xz + offset;
+
+      float fade = clamp((d - bpy) / abs(foamDir.y), 0.0, 1.0);
+      fade = 1.0 - fade;
+
+      float t = 0.3 * ViewPositionAndTime.w;
+      highp vec2 st = watpos;
+      float n = sin(st.x + 3.0 * sin(0.5 * st.y) + t) * sin(st.y + 3.0 * sin(0.5 * st.x) - t);
+      n = 0.5 + 0.5 * sin(st.x + 2.0 * n + 0.2 * t) * sin(st.y - 4.0 * n + 0.1 * t);
+      fade = pow(fade, 1.0 + 4.0 * n);
+
+      float foam = fract(238.084 * sin(dot(floor(16.0 * watpos), vec2(1.32, 141.3))));
+      foam *= fade;
+      foam = mix(foam, 1.0, fade * fade * fade);
+
+      diffuse.rgb = mix(diffuse.rgb, AURELIA_FOAM_COLOR, foam);
+    }
+  #endif
+
   float shadeMax = max(v_color0.r, max(v_color0.g, v_color0.b));
   vec3 shaded = v_color0.rgb * pow(shadeMax, AURELIA_AO_STRENGTH - 1.0);
   float shadow = (1.0 - smoothstep(0.55, 0.95, v_lightmapUV.y)) * (1.0 - v_lightmapUV.x) * (isEnd ? 0.0 : 1.0);
