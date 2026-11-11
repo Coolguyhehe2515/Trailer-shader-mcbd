@@ -45,6 +45,9 @@ void main() {
 
     if (!underwater) {
       vec3 horizonCol = aureliaSkyHorizon(vec3(0.45, 0.5, 0.56), sunDir);
+      vec4 c = aureliaCloudsVolume(dir, CameraPosition.xz, ViewPositionAndTime.w, sunDir, horizonCol);
+      outCol = mix(outCol, aureliaColorGrade(c.rgb), c.a);
+    }
 
       #ifdef AURELIA_CLOUD_TEXTURE
         vec4 c = aureliaCloudsRawTex(s_CloudNoise, dir, CameraPosition.xz, ViewPositionAndTime.w, sunDir, horizonCol, 0.0);
