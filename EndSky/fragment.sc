@@ -12,7 +12,7 @@ $input v_texcoord0, v_posTime
 
 void main() {
   #ifndef INSTANCING
-    vec3 color = aureliaEndSky(s_SkyTexture, normalize(v_posTime.xyz));
+     vec3 color = aureliaEndSky(s_SkyTexture, normalize(v_posTime.xyz), v_posTime.w);
     gl_FragColor = vec4(color, 1.0);
   #else
     gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
