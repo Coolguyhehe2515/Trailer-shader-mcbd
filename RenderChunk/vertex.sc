@@ -26,6 +26,14 @@ void main() {
 
   vec3 worldPos = mul(model, vec4(a_position, 1.0)).xyz;
 
+  #ifndef INSTANCING
+    vec2 chunkCenter = worldPos.xz - a_position.xz + 8.0;
+    float chunkEdge = length(chunkCenter) / FogAndDistanceControl.z;
+    float chunkSink = smoothstep(AURELIA_CHUNK_SINK_START, 1.0, chunkEdge);
+    float chunkRise = clamp(RenderChunkFogAlpha.x, 0.0, 1.0);
+    worldPos.y -= AURELIA_CHUNK_SINK * chunkSink * chunkSink + AURELIA_CHUNK_RISE * chunkRise * chunkRise;
+  #endif
+
   #if !(defined(DEPTH_ONLY_OPAQUE) || defined(DEPTH_ONLY) || defined(INSTANCING))
     float camDis = length(ViewPositionAndTime.xyz - worldPos);
 
@@ -45,7 +53,7 @@ void main() {
       color = vec4(color.www, 1.0);
     #endif
 
-    float relativeDist = camDis / FogAndDistanceControl.z + RenderChunkFogAlpha.x;
+    float relativeDist = camDis / FogAndDistanceControl.z + RenderChunkFogAlpha.x * AURELIA_CHUNK_FOG_FADE;
 
     vec2 uv0 = 2.0 * a_texcoord0.xy;
     uv0 = fract(uv0) + ((floor(uv0) - 0.5) / 16384.0);
