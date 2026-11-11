@@ -3,7 +3,11 @@
 
 #include <config.sh>
 
-float aureliaRain = 0.0;
+#if BGFX_SHADER_LANGUAGE_HLSL || BGFX_SHADER_LANGUAGE_PSSL || BGFX_SHADER_LANGUAGE_SPIRV || BGFX_SHADER_LANGUAGE_METAL
+  static float aureliaRain = 0.0;
+#else
+  float aureliaRain = 0.0;
+#endif
 
 float aureliaRainFactor(vec3 fogControl) {
   vec2 clearFog = vec2(0.5 + 20.0 / fogControl.z, 1.0);
