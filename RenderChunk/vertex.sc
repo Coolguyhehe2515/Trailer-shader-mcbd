@@ -66,6 +66,13 @@ void main() {
        aureliaWave(worldPos, a_color0, a_position.xyz, uv0, camDis, ViewPositionAndTime.w, s_MatTexture, CameraPosition.xyz);
     #endif
 
+    #if defined(AURELIA_WATER_VWAVE) && defined(TRANSPARENT) && !(defined(RENDER_AS_BILLBOARDS) || defined(SEASONS))
+      if (a_color0.b > 0.3 && a_color0.a < 0.95 && fract(a_position.y) > 0.001) {
+        float waveFade = 1.0 - smoothstep(0.5, 1.0, camDis / AURELIA_WATER_WAVE_RANGE);
+        worldPos.y += AURELIA_WATER_WAVE_HEIGHT * waveFade * aureliaWaterWaveHeight(worldPos.xz + CameraPosition.xz, ViewPositionAndTime.w);
+      }
+    #endif
+
     #ifndef RENDER_AS_BILLBOARDS
       float skyLight = smoothstep(0.5, 0.95, uv1.y);
       color.rgb *= aureliaCloudShadow(worldPos, CameraPosition.xz, ViewPositionAndTime.w, aureliaSunDir(TimeOfDay.x), skyLight);
