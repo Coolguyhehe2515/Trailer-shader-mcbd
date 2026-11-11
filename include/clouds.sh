@@ -46,12 +46,8 @@ highp vec2 aureliaCloudSnap(highp vec2 p) {
 }
 
 float aureliaCloudShadow(highp vec3 worldPos, highp vec2 camXZ, highp float time, vec3 sunDir, float skyLight) {
-  float sunUp = smoothstep(0.0, 0.25, sunDir.y);
-  float heightFade = 1.0 - smoothstep(AURELIA_CLOUD_ALTITUDE - 40.0, AURELIA_CLOUD_ALTITUDE, worldPos.y);
-  float strength = sunUp * skyLight * heightFade;
-  if (strength <= 0.0) {
-    return 1.0;
-  }
+  return 1.0;
+}
 
   highp vec2 world = camXZ + worldPos.xz + sunDir.xz / max(sunDir.y, 0.15) * max(AURELIA_CLOUD_ALTITUDE - worldPos.y, 0.0);
   highp vec2 p = (world + vec2(1.0, 0.4) * time * AURELIA_CLOUD_SPEED) * AURELIA_CLOUD_SCALE;
