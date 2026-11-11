@@ -48,6 +48,8 @@ void main() {
 
   aureliaRain = aureliaRainFactor(FogAndDistanceControl.xyz);
   bool isEnd = aureliaIsEnd(FogColor.rgb);
+  bool isNether = aureliaIsNether(FogColor.rgb, FogAndDistanceControl.xy);
+  vec4 torch = aureliaTorchSetup(isEnd, isNether, aureliaUnderwater(FogColor.rgb, FogAndDistanceControl.xyz));
 
   vec4 diffuse = texture2D(s_MatTexture, v_texcoord0);
 
