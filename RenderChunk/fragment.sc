@@ -207,7 +207,9 @@ void main() {
 
    if (isWater && abs(fn.y) > 0.9 && vdir.y < 0.0) {
       #ifdef AURELIA_WATER_FLAT
-        color = mix(color, AURELIA_WATER_FLAT_COLOR, AURELIA_WATER_FLAT_MIX);
+        vec3 wn = fn.y < 0.0 ? -fn : fn;
+        float waveLit = 1.0 + AURELIA_WATER_WAVE_SHADE * dot(wn.xz, vec2(0.6, 0.8));
+        color = mix(color, AURELIA_WATER_FLAT_COLOR * waveLit, AURELIA_WATER_FLAT_MIX);
         alpha = AURELIA_WATER_FLAT_ALPHA;
       #else
         aureliaWater(color, alpha, vdir, v_worldPos.xz + CameraPosition.xz, camDis, ViewPositionAndTime.w, aureliaSunDir(TimeOfDay.x), FogColor.rgb, CameraPosition.xz, skyVis);
