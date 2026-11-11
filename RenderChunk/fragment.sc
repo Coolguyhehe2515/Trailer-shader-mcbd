@@ -205,10 +205,14 @@ void main() {
   #if defined(TRANSPARENT) && !(defined(SEASONS) || defined(RENDER_AS_BILLBOARDS))
     bool isWater = v_color1.b > 0.3 && v_color1.a < 0.95;
 
-    if (isWater && abs(fn.y) > 0.9 && vdir.y < 0.0) {
-      aureliaWater(color, alpha, vdir, v_worldPos.xz + CameraPosition.xz, camDis, ViewPositionAndTime.w, aureliaSunDir(TimeOfDay.x), FogColor.rgb, CameraPosition.xz, skyVis);
+   if (isWater && abs(fn.y) > 0.9 && vdir.y < 0.0) {
+      #ifdef AURELIA_WATER_FLAT
+        color = mix(color, AURELIA_WATER_FLAT_COLOR, AURELIA_WATER_FLAT_MIX);
+        alpha = AURELIA_WATER_FLAT_ALPHA;
+      #else
+        aureliaWater(color, alpha, vdir, v_worldPos.xz + CameraPosition.xz, camDis, ViewPositionAndTime.w, aureliaSunDir(TimeOfDay.x), FogColor.rgb, CameraPosition.xz, skyVis);
+      #endif
     }
-  #endif
 
   color = mix(color, isEnd ? AURELIA_END_FOG : v_fog.rgb, v_fog.a);
 
