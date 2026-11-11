@@ -41,6 +41,7 @@ void main() {
 
     vec4 fogColor;
     bool uw = aureliaUnderwater(FogColor.rgb, FogControl.xyz);
+    vec4 torchSet = aureliaTorchSetup(aureliaIsEnd(FogColor.rgb), aureliaIsNether(FogColor.rgb, FogControl.xy), uw);
     float uwB = uw ? AURELIA_UW_BRIGHTNESS : 1.0;
     fogColor.rgb = aureliaIsEnd(FogColor.rgb) ? AURELIA_END_FOG : (uw ? aureliaUnderwaterFog(FogColor.rgb) : FogColor.rgb);
     fogColor.rgb *= uwB;
@@ -60,7 +61,7 @@ void main() {
     float skyShare = smoothstep(0.5, 1.0, aureliaLuma(tileLight));
     tileLight *= mix(1.0, AURELIA_SUN_INTENSITY, skyShare * sunUp);
     float warm = clamp((tileLight.r - tileLight.b) * 3.0, 0.0, 1.0);
-    tileLight = mix(tileLight, tileLight * (AURELIA_TORCH_COLOR / aureliaLuma(AURELIA_TORCH_COLOR)), warm * AURELIA_ACTOR_TORCH_TINT);
+    tileLight = mix(tileLight, tileLight * (torchSet.rgb / aureliaLuma(torchSet.rgb)), warm * AURELIA_ACTOR_TORCH_TINT);
     tileLight *= AURELIA_ACTOR_BRIGHTNESS * uwB;
     aureliaRain = aureliaRainFactor(FogControl.xyz);
     tileLight = mix(tileLight, vec3_splat(aureliaLuma(tileLight)), aureliaRain * AURELIA_ACTOR_RAIN_GRAY);
