@@ -30,4 +30,12 @@ void aureliaWave(inout vec3 worldPos, vec4 color, vec3 cPos, vec2 uv0, float cam
   worldPos.xz += vec2(1.0, 0.6) * gust * tip * tip * AURELIA_WAVE_STRENGTH * fade;
 }
 
+float aureliaWaterWaveHeight(highp vec2 p, highp float time) {
+  highp float t = time * AURELIA_WATER_SPEED;
+  float h = sin(dot(p, vec2(0.74, 0.67)) * 1.0 + t * 1.2)
+          + 0.5 * sin(dot(p, vec2(-0.52, 0.85)) * 1.7 + t * 1.6)
+          + 0.25 * sin(dot(p, vec2(0.93, -0.37)) * 2.3 + t * 2.0);
+  return h / 1.75;
+}
+
 #endif
