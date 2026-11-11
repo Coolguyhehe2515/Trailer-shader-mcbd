@@ -41,20 +41,8 @@ float aureliaCloudDensityCoarse(highp vec2 p, highp float time) {
   return aureliaCloudCover(aureliaCloudBase(p, aureliaCloudWeather(p, time)));
 }
 
-highp vec2 aureliaCloudSnap(highp vec2 p) {
-  return (floor(p * AURELIA_CLOUD_BLOCK) + 0.5) / AURELIA_CLOUD_BLOCK;
-}
-
 float aureliaCloudShadow(highp vec3 worldPos, highp vec2 camXZ, highp float time, vec3 sunDir, float skyLight) {
   return 1.0;
-}
-
-  highp vec2 world = camXZ + worldPos.xz + sunDir.xz / max(sunDir.y, 0.15) * max(AURELIA_CLOUD_ALTITUDE - worldPos.y, 0.0);
-  highp vec2 p = (world + vec2(1.0, 0.4) * time * AURELIA_CLOUD_SPEED) * AURELIA_CLOUD_SCALE;
-  p = aureliaCloudSnap(p);
-
-  float shade = mix(AURELIA_CLOUD_SHADE, 0.7, aureliaRain);
-  return 1.0 - shade * aureliaCloudDensityCoarse(p, time) * strength;
 }
 
 vec4 aureliaCloudsVolume(vec3 dir, highp vec2 camXZ, highp float time, vec3 sunDir, vec3 fogColor) {
