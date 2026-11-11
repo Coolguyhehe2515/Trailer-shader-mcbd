@@ -6,10 +6,6 @@
 #include <main.sh>
 
 #ifndef INSTANCING
-  #ifdef AURELIA_CLOUD_TEXTURE
-    SAMPLER2D_AUTOREG(s_CloudNoise);
-  #endif
-
   uniform vec4 TimeOfDay;
   uniform vec4 FogColor;
   uniform vec4 FogAndDistanceControl;
@@ -46,15 +42,6 @@ void main() {
     if (!underwater) {
       vec3 horizonCol = aureliaSkyHorizon(vec3(0.45, 0.5, 0.56), sunDir);
       vec4 c = aureliaCloudsVolume(dir, CameraPosition.xz, ViewPositionAndTime.w, sunDir, horizonCol);
-      outCol = mix(outCol, aureliaColorGrade(c.rgb), c.a);
-    }
-
-      #ifdef AURELIA_CLOUD_TEXTURE
-        vec4 c = aureliaCloudsRawTex(s_CloudNoise, dir, CameraPosition.xz, ViewPositionAndTime.w, sunDir, horizonCol, 0.0);
-      #else
-        vec4 c = aureliaCloudsRaw(dir, CameraPosition.xz, ViewPositionAndTime.w, sunDir, horizonCol, 0.0);
-      #endif
-
       outCol = mix(outCol, aureliaColorGrade(c.rgb), c.a);
     }
 
