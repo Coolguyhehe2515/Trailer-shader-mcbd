@@ -79,7 +79,7 @@ void aureliaPuddle(inout vec3 col, vec3 vdir, highp vec2 absXZ, float camDis, hi
   r.y = abs(r.y);
 
   vec3 sky = aureliaSkyColor(r, fogColor, sunDir);
-  vec4 cl = aureliaCloudsRaw(r, camXZ, time, sunDir, fogColor, 0.0);
+  vec4 cl = aureliaCloudsVolume(r, camXZ, time, sunDir, fogColor);
   vec3 refl = mix(sky, cl.rgb, cl.a);
 
   vec3 dark = col * (1.0 - AURELIA_PUDDLE_DARKEN);
