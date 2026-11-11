@@ -47,5 +47,5 @@ jobs:
       - run: ls pack/renderer/materials
       - uses: actions/upload-artifact@v4
         with:
-          name: noob-aurelia-${{ env.TARGET }}
+          name: trailer-shader-${{ env.TARGET }}
           path: pack/
