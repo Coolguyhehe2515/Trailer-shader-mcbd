@@ -30,11 +30,14 @@ void main() {
     vec2 chunkCenter = worldPos.xz - a_position.xz + 8.0;
     float chunkEdge = length(chunkCenter) / FogAndDistanceControl.z;
     float chunkSink = smoothstep(AURELIA_CHUNK_SINK_START, 1.0, chunkEdge);
-    float chunkRise = clamp(RenderChunkFogAlpha.x, 0.0, 1.0);
-    worldPos.y -= AURELIA_CHUNK_SINK * chunkSink * chunkSink + AURELIA_CHUNK_RISE * chunkRise * chunkRise;
+    worldPos.y -= AURELIA_CHUNK_SINK * chunkSink * chunkSink;
   #endif
 
   #if !(defined(DEPTH_ONLY_OPAQUE) || defined(DEPTH_ONLY) || defined(INSTANCING))
+    #ifdef AURELIA_CHUNK_LOAD_ANIM
+      worldPos.y -= AURELIA_CHUNK_LOAD_ANIM * RenderChunkFogAlpha.x * RenderChunkFogAlpha.x * RenderChunkFogAlpha.x;
+    #endif
+
     float camDis = length(ViewPositionAndTime.xyz - worldPos);
 
     #ifdef RENDER_AS_BILLBOARDS
@@ -53,7 +56,7 @@ void main() {
       color = vec4(color.www, 1.0);
     #endif
 
-    float relativeDist = camDis / FogAndDistanceControl.z + RenderChunkFogAlpha.x * AURELIA_CHUNK_FOG_FADE;
+    float relativeDist = camDis / FogAndDistanceControl.z + RenderChunkFogAlpha.x;
 
     vec2 uv0 = 2.0 * a_texcoord0.xy;
     uv0 = fract(uv0) + ((floor(uv0) - 0.5) / 16384.0);
