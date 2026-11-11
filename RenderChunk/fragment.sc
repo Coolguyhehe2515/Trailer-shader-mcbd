@@ -172,7 +172,7 @@ void main() {
 
         vec3 sunD = aureliaSunDir(TimeOfDay.x);
         vec3 skyR = aureliaSkyColor(mr, FogColor.rgb, sunD);
-        vec4 clR = aureliaCloudsRaw(mr, CameraPosition.xz, ViewPositionAndTime.w, sunD, FogColor.rgb, 0.0);
+        vec4 clR = aureliaCloudsVolume(mr, CameraPosition.xz, ViewPositionAndTime.w, sunD, FogColor.rgb);
         vec3 envR = isEnd ? AURELIA_END_AMBIENT * 0.8 : mix(skyR, clR.rgb, clR.a);
 
         float cosM = clamp(dot(mN, -vdir), 0.0, 1.0);
