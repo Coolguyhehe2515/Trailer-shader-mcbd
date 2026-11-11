@@ -1,16 +1,16 @@
 {
   "format_version": 2,
   "header": {
-    "name": "Noob Aurelia",
-    "description": "Realistic shader",
-    "uuid": "e8f552a5-9cd7-49a4-8c16-a6aef9315912",
+    "name": "Trailer-shader",
+    "description": "This shader make your Minecraft look like the trailer.Note:Use Bare Bones for better experiences!",
+    "uuid": "bb85d938-777e-4332-8219-d04dfea156f7",
     "version": [1, 0, 2],
     "min_engine_version": [1, 26, 60]
   },
   "modules": [
     {
       "type": "resources",
-      "uuid": "195bae5c-7f4c-420c-bd0a-92597a034fa7",
+      "uuid": "bb85d938-777e-4332-8219-d04dfea156f7",
       "version": [1, 0, 0]
     }
   ]
