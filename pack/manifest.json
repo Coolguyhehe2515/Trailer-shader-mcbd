@@ -4,7 +4,7 @@
     "name": "Noob Aurelia",
     "description": "Realistic shader",
     "uuid": "e8f552a5-9cd7-49a4-8c16-a6aef9315912",
-    "version": [1, 0, 1],
+    "version": [1, 0, 2],
     "min_engine_version": [1, 26, 60]
   },
   "modules": [
