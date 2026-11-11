@@ -31,7 +31,7 @@ void aureliaWater(inout vec3 col, inout float alpha, vec3 vdir, highp vec2 absXZ
   r.y = abs(r.y);
 
   vec3 sky = aureliaSkyColor(r, fogColor, sunDir);
-  vec4 cl = aureliaCloudsRaw(r, camXZ, time, sunDir, fogColor, 0.0);
+  vec4 cl = aureliaCloudsVolume(r, camXZ, time, sunDir, fogColor);
   vec3 refl = mix(sky, cl.rgb, cl.a);
 
   float sunUp = smoothstep(-0.05, 0.08, sunDir.y);
@@ -59,7 +59,7 @@ void aureliaSnellWindow(inout vec3 col, inout float alpha, vec3 vdir, highp vec2
 
   vec3 skyFog = vec3(0.45, 0.5, 0.56);
   vec3 sky = aureliaSkyColor(td, skyFog, sunDir);
-  vec4 cl = aureliaCloudsRaw(td, camXZ, time, sunDir, skyFog, 0.0);
+  vec4 cl = aureliaCloudsVolume(td, camXZ, time, sunDir, skyFog);
   vec3 win = mix(sky, cl.rgb, cl.a) * AURELIA_SNELL_TINT;
 
   vec3 tir = waterFog * AURELIA_SNELL_OUTSIDE;
