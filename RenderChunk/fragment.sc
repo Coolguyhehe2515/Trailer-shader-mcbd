@@ -68,6 +68,26 @@ void main() {
     metal = smoothstep(225.0, 235.0, alpha255) * (1.0 - smoothstep(241.0, 250.0, alpha255));
   #endif
 
+  #if (defined(OPAQUE) || defined(ALPHA_TEST)) && defined(AURELIA_EMISSIVE_BY_COLOR)
+    float cMax = max(diffuse.r, max(diffuse.g, diffuse.b));
+    float cMin = min(diffuse.r, min(diffuse.g, diffuse.b));
+    float cSat = (cMax - cMin) / max(cMax, 0.001);
+    float warmHue = step(diffuse.b + 0.1, diffuse.g) * step(diffuse.g, diffuse.r + 0.02);
+    float cyanHue = step(diffuse.r + 0.1, diffuse.b) * step(diffuse.r + 0.1, diffuse.g);
+
+    float lumaC = dot(diffuse.rgb, vec3(0.2126, 0.7152, 0.0722));
+    vec3 blurred = texture2DLod(s_MatTexture, v_texcoord0, AURELIA_EMISSIVE_MIP).rgb;
+    float lumaB = dot(blurred, vec3(0.2126, 0.7152, 0.0722));
+    float localContrast = smoothstep(AURELIA_EMISSIVE_CONTRAST, AURELIA_EMISSIVE_CONTRAST + 0.1, lumaC - lumaB);
+
+    float byColor = smoothstep(AURELIA_EMISSIVE_BRIGHT, AURELIA_EMISSIVE_BRIGHT + 0.12, cMax)
+                  * smoothstep(AURELIA_EMISSIVE_SAT, AURELIA_EMISSIVE_SAT + 0.15, cSat)
+                  * max(warmHue, cyanHue)
+                  * smoothstep(0.85, 0.93, v_lightmapUV.x)
+                  * mix(AURELIA_EMISSIVE_BASE, 1.0, localContrast);
+    emissive = max(emissive, byColor);
+  #endif
+
   #if defined(SEASONS) && (defined(OPAQUE) || defined(ALPHA_TEST))
     diffuse.rgb *= mix(vec3(1.0, 1.0, 1.0), texture2D(s_SeasonsTexture, v_color1.xy).rgb * 2.0, v_color1.z);
   #endif
@@ -77,6 +97,8 @@ void main() {
   #else
     diffuse.a = 1.0;
   #endif
+
+  float foamMask = 0.0;
 
   #ifdef OPAQUE
     highp float wcPos = v_worldPos.y + CameraPosition.y;
@@ -95,7 +117,7 @@ void main() {
       highp vec2 offset = (d - bpy) * foamDir.xz / foamDir.y;
       highp vec2 watpos = v_chunkPos.xz + offset;
 
-      float fade = clamp((d - bpy) / abs(foamDir.y), 0.0, 1.0);
+      float fade = clamp((d - bpy) / (abs(foamDir.y) * AURELIA_FOAM_WIDTH), 0.0, 1.0);
       fade = 1.0 - fade;
 
       float t = 0.3 * ViewPositionAndTime.w;
@@ -108,7 +130,7 @@ void main() {
       foam *= fade;
       foam = mix(foam, 1.0, fade * fade * fade);
 
-      diffuse.rgb = mix(diffuse.rgb, AURELIA_FOAM_COLOR, foam);
+      foamMask = foam;
     }
   #endif
 
@@ -200,12 +222,13 @@ void main() {
 
   vec3 glow = diffuse.rgb * AURELIA_GLOW_STRENGTH;
   vec3 color = mix(lit, glow, emissive);
+  color = mix(color, AURELIA_FOAM_COLOR, foamMask);
   float alpha = diffuse.a;
 
   #if defined(TRANSPARENT) && !(defined(SEASONS) || defined(RENDER_AS_BILLBOARDS))
     bool isWater = v_color1.b > 0.3 && v_color1.a < 0.95;
 
-   if (isWater && abs(fn.y) > 0.9 && vdir.y < 0.0) {
+    if (isWater && abs(fn.y) > 0.9 && vdir.y < 0.0) {
       #ifdef AURELIA_WATER_FLAT
         vec3 wn = fn.y < 0.0 ? -fn : fn;
         float waveLit = 1.0 + AURELIA_WATER_WAVE_SHADE * dot(wn.xz, vec2(0.6, 0.8));
@@ -215,6 +238,7 @@ void main() {
         aureliaWater(color, alpha, vdir, v_worldPos.xz + CameraPosition.xz, camDis, ViewPositionAndTime.w, aureliaSunDir(TimeOfDay.x), FogColor.rgb, CameraPosition.xz, skyVis);
       #endif
     }
+  #endif
 
   color = mix(color, isEnd ? AURELIA_END_FOG : v_fog.rgb, v_fog.a);
 
@@ -224,7 +248,7 @@ void main() {
     }
   #endif
 
-    if (aureliaUnderwater(FogColor.rgb, FogAndDistanceControl.xyz)) {
+  if (aureliaUnderwater(FogColor.rgb, FogAndDistanceControl.xyz)) {
     color *= AURELIA_UW_BRIGHTNESS;
   }
 
