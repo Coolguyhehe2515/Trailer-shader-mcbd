@@ -118,7 +118,7 @@ void main() {
   float skyVis = smoothstep(0.4, 0.9, v_lightmapUV.y);
 
   float sunUp = smoothstep(-0.1, 0.2, aureliaSunDir(TimeOfDay.x).y);
-  vec3 lightCol = isEnd ? aureliaEndLighting(v_lightmapUV.x) : aureliaLighting(s_LightMapTexture, v_lightmapUV, sunUp);
+  vec3 lightCol = isEnd ? aureliaEndLighting(v_lightmapUV.x, torch) : aureliaLighting(s_LightMapTexture, v_lightmapUV, sunUp, torch);
   vec3 lit = diffuse.rgb * shaded * lightCol;
   lit *= mix(vec3_splat(1.0), AURELIA_SHADE_COLOR, shadow);
 
