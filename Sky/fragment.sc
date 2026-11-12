@@ -37,6 +37,14 @@ void main() {
       #endif
     }
 
+    #ifndef AURELIA_GEO_CLOUDS
+    if (!underwater) {
+      vec3 horizonCol = aureliaSkyHorizon(vec3(0.45, 0.5, 0.56), sunDir);
+      vec4 c = aureliaCloudsVolume(dir, CameraPosition.xz, ViewPositionAndTime.w, sunDir, horizonCol);
+      outCol = mix(outCol, aureliaColorGrade(c.rgb), c.a);
+    }
+    #endif
+
     vec3 outCol = aureliaColorGrade(sky);
 
     if (!underwater) {
