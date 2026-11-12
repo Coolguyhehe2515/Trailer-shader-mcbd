@@ -1,5 +1,6 @@
 name: build
 on:
+  push:
   workflow_dispatch:
     inputs:
       target:
@@ -9,12 +10,18 @@ on:
         options:
           - android
           - ios
+          - windows
           - multiplatform
+      pack_version:
+        type: string
+        description: Pack version for manifest.json (example 1.0.2, leave empty to keep current)
+        default: ""
 jobs:
   build:
-    runs-on: ${{ (inputs.target == 'ios' && 'macos-latest') || (inputs.target == 'multiplatform' && 'windows-latest') || 'ubuntu-latest' }}
+    runs-on: ${{ (inputs.target == 'ios' && 'macos-latest') || ((inputs.target == 'multiplatform' || inputs.target == 'windows') && 'windows-latest') || 'ubuntu-latest' }}
     env:
       TARGET: ${{ inputs.target || 'android' }}
+      PACK_VERSION: ${{ inputs.pack_version }}
     defaults:
       run:
         shell: bash
@@ -24,11 +31,29 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install lazurite==0.12.0
+      - name: Set pack version
+        if: ${{ inputs.pack_version != '' }}
+        run: |
+          python - <<'PY'
+          import json, os, re
+          v = os.environ['PACK_VERSION'].strip()
+          if not re.fullmatch(r'\d+\.\d+\.\d+', v):
+              raise SystemExit('pack_version must look like 1.2.3')
+          nums = [int(x) for x in v.split('.')]
+          with open('pack/manifest.json', encoding='utf-8') as f:
+              m = json.load(f)
+          m['header']['version'] = nums
+          for mod in m['modules']:
+              mod['version'] = nums
+          with open('pack/manifest.json', 'w', encoding='utf-8') as f:
+              json.dump(m, f, indent=2)
+          print('manifest version set to', nums)
+          PY
       - name: Shaderc
         run: |
           mkdir -p tools
           if [ "$TARGET" = "ios" ]; then ASSET=shaderc-osx-x64; EXT=""; fi
-          if [ "$TARGET" = "multiplatform" ]; then ASSET=shaderc-win-x64.exe; EXT=".exe"; fi
+          if [ "$TARGET" = "windows" ] || [ "$TARGET" = "multiplatform" ]; then ASSET=shaderc-win-x64.exe; EXT=".exe"; fi
           if [ "$TARGET" = "android" ]; then ASSET=shaderc-linux-x64; EXT=""; fi
           curl -fL -o "tools/shaderc$EXT" "https://github.com/devendrn/newb-shader/releases/download/dev/$ASSET"
           chmod +x "tools/shaderc$EXT"
@@ -47,5 +72,5 @@ jobs:
       - run: ls pack/renderer/materials
       - uses: actions/upload-artifact@v4
         with:
-          name: trailer-shader-${{ env.TARGET }}
+          name: trailer-shader-${{ env.TARGET }}${{ inputs.pack_version != '' && format('-v{0}', inputs.pack_version) || '' }}
           path: pack/
