@@ -47,68 +47,40 @@ float aureliaCloudShadow(highp vec3 worldPos, highp vec2 camXZ, highp float time
 
 vec4 aureliaCloudsVolume(vec3 dir, highp vec2 camXZ, highp float time, vec3 sunDir, vec3 fogColor) {
   float up = dir.y;
-  float viewLift = smoothstep(0.01, 0.1, up);
-  if (viewLift <= 0.0) {
+  float horizon = smoothstep(0.02, 0.3, up);
+  if (horizon <= 0.0) {
     return vec4(0.0, 0.0, 0.0, 0.0);
   }
 
-  float wStart = 0.2;
-  float wEnd = 0.6;
-  highp vec2 dxz = dir.xz / max(up, 0.01);
-  float invCell = 1.0 / AURELIA_VCLOUD_CELL;
-  float windowLen = (wEnd - wStart) * AURELIA_VCLOUD_THICKNESS;
+  highp vec2 world = camXZ + dir.xz / max(up, 0.02) * AURELIA_CLOUD_ALTITUDE + vec2(1.0, 0.4) * time * AURELIA_CLOUD_SPEED;
 
-  float nf = clamp(ceil(windowLen * length(dxz) * invCell * AURELIA_VCLOUD_SAMPLES), 3.0, float(AURELIA_VCLOUD_STEPS));
-  int n = int(nf);
+  float blockMix = smoothstep(0.12, 0.35, up);
+  highp vec2 snapped = (floor(world / AURELIA_VCLOUD_CELL) + 0.5) * AURELIA_VCLOUD_CELL;
+  highp vec2 p = mix(world, snapped, blockMix) * AURELIA_VCLOUD_SCALE;
 
-  float stepsOld = (wEnd - wStart) * 64.0;
-  float alphaStep = 1.0 - pow(max(1.0 - viewLift, 0.0001), stepsOld / nf);
+  float shape = aureliaNoise(p) * (1.0 - AURELIA_VCLOUD_DETAIL) + aureliaNoise(p * 3.1 + vec2(13.0, 7.0)) * AURELIA_VCLOUD_DETAIL;
 
-  float jitter = aureliaHash(dir.xz * 1733.0 + vec2(17.0, 31.0));
-  highp vec2 wind = vec2(1.0, 0.4) * time * AURELIA_CLOUD_SPEED;
+  float thr = AURELIA_VCLOUD_COVERAGE - aureliaRain * AURELIA_CLOUD_RAIN_GROW;
+  float soft = mix(0.06, 0.002, blockMix);
+  float density = smoothstep(thr, thr + soft, shape);
 
-    float thr = AURELIA_VCLOUD_COVERAGE - aureliaRain * AURELIA_CLOUD_RAIN_GROW;
-
-  float cloudAccum = 0.0;
-  float alphaAccum = 0.0;
-
-  for (int i = 0; i < AURELIA_VCLOUD_STEPS; i++) {
-    if (i >= n) {
-      break;
-    }
-
-    float hn = wStart + (wEnd - wStart) * (float(i) + jitter) / nf;
-    float height = AURELIA_CLOUD_ALTITUDE + AURELIA_VCLOUD_THICKNESS * hn;
-    highp vec2 cell = floor((camXZ + dxz * height + wind) * invCell);
-    float shape = mix(aureliaNoise(cell * AURELIA_VCLOUD_CLUMP_SCALE), aureliaHash(cell), AURELIA_VCLOUD_ROUGH);
-    float density = step(thr + hn * AURELIA_VCLOUD_DOME, shape);
-    float alpha = density * (1.0 - alphaAccum) * alphaStep;
-
-    cloudAccum += smoothstep(0.2, 0.9, hn) * alpha;
-    alphaAccum += alpha;
-
-    if (alphaAccum > 0.98) {
-      break;
-    }
-  }
-
-  if (alphaAccum < 0.003) {
+  if (density < 0.003) {
     return vec4(0.0, 0.0, 0.0, 0.0);
   }
 
-  float top = clamp(cloudAccum / alphaAccum / 0.6, 0.0, 1.0);
+  float edge = 1.0 - smoothstep(thr, thr + 0.1, shape);
 
   float dayF = smoothstep(-0.06, 0.28, sunDir.y);
   float twi = dayF * (1.0 - smoothstep(0.1, 0.45, sunDir.y));
   vec3 sunCol = mix(vec3(1.0, 0.5, 0.2), vec3(1.0, 0.97, 0.9), smoothstep(0.0, 0.45, sunDir.y));
 
-  vec3 col = AURELIA_CLOUD_FLAT_COLOR * mix(AURELIA_VCLOUD_SHADE, 1.0, top);
+  vec3 col = AURELIA_CLOUD_FLAT_COLOR * mix(1.0, AURELIA_VCLOUD_SHADE, edge);
   col *= mix(0.08, 1.0, dayF);
   col *= mix(vec3_splat(1.0), sunCol, twi * 0.7);
   col *= 1.0 - AURELIA_CLOUD_RAIN_DARK * aureliaRain * 0.6;
-  col = mix(fogColor, col, 0.4 + 0.6 * smoothstep(0.0, 0.35, up));
+  col = mix(fogColor, col, 0.4 + 0.6 * horizon);
 
-  float a = alphaAccum * mix(AURELIA_CLOUD_OPACITY, 1.0, aureliaRain);
+  float a = density * horizon * mix(AURELIA_CLOUD_OPACITY, 1.0, aureliaRain);
   return vec4(col, a);
 }
 
