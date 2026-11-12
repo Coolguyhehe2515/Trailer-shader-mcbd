@@ -55,6 +55,7 @@ vec4 aureliaCloudsVolume(vec3 dir, highp vec2 camXZ, highp float time, vec3 sunD
     return vec4(0.0, 0.0, 0.0, 0.0);
   #endif
   float up = dir.y;
+}
 
 vec4 aureliaCloudsVolume(vec3 dir, highp vec2 camXZ, highp float time, vec3 sunDir, vec3 fogColor) {
   float up = dir.y;
