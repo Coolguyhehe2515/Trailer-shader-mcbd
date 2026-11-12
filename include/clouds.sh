@@ -81,7 +81,7 @@ vec4 aureliaCloudsVolume(vec3 dir, highp vec2 camXZ, highp float time, vec3 sunD
     float height = AURELIA_CLOUD_ALTITUDE + AURELIA_VCLOUD_THICKNESS * hn;
     highp vec2 cell = floor((camXZ + dxz * height + wind) * invCell);
     float shape = mix(aureliaNoise(cell * AURELIA_VCLOUD_CLUMP_SCALE), aureliaHash(cell), AURELIA_VCLOUD_ROUGH);
-    float density = step(thr, shape);
+    float density = step(thr + hn * AURELIA_VCLOUD_DOME, shape);
     float alpha = density * (1.0 - alphaAccum) * alphaStep;
 
     cloudAccum += smoothstep(0.2, 0.9, hn) * alpha;
