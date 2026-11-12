@@ -7,6 +7,10 @@ $output v_color0
 #include <bgfx_shader.sh>
 #include <main.sh>
 
+uniform vec4 FogColor;
+uniform vec4 FogAndDistanceControl;
+uniform vec4 TimeOfDay;
+
 void main() {
   #ifdef INSTANCING
     mat4 model = mtxFromCols(i_data0, i_data1, i_data2, i_data3);
@@ -14,20 +18,36 @@ void main() {
     mat4 model = u_model[0];
   #endif
 
+  aureliaRain = aureliaRainFactor(FogAndDistanceControl.xyz);
+  float rain = aureliaRain;
+
   vec3 pos = a_position;
-  vec4 apos = vec4(pos.xz - 32.0, 1.0, 1.0);
-  apos.x *= pos.y - 0.5;
-  apos.xy = clamp(apos.xy, -1.0, 1.0);
+  pos.y *= mix(AURELIA_CLOUD0_THICKNESS, AURELIA_CLOUD0_RAIN_THICKNESS, rain);
+  vec3 worldPos = mul(model, vec4(pos, 1.0)).xyz;
 
-  #if BGFX_SHADER_LANGUAGE_GLSL
-    float h = model[3][1];
-  #else
-    float h = model[1][3];
-  #endif
-  h = clamp(0.002 * h, 0.0, 1.0);
+  vec3 sunDir = aureliaSunDir(TimeOfDay.x);
+  vec3 zenith = aureliaSkyColor(vec3(0.0, 1.0, 0.0), FogColor.rgb, sunDir);
+  vec3 horizonEdge = aureliaSkyHorizon(FogColor.rgb, sunDir);
 
-  vec3 worldPos = mul(u_invViewProj, apos).xyz;
+  float cloudFadeY = smoothstep(0.0, 1.0, a_position.y);
+  vec3 col = zenith + horizonEdge;
+  col += dot(col, vec3(0.3, 0.4, 0.3)) * a_position.y;
+  col *= 1.0 - 0.6 * rain;
+  col = aureliaColorGrade(col);
 
-  v_color0 = vec4(worldPos, h);
-  gl_Position = apos;
+  float fade = clamp(2.0 - length(worldPos * vec3(0.005, 0.002, 0.005)), 0.0, 1.0);
+  float alpha = AURELIA_CLOUD0_OPACITY * (1.0 - cloudFadeY) * fade;
+
+  bool isL2 = a_color0.g > 0.5 * a_color0.b;
+  if (isL2) {
+    #ifdef AURELIA_CLOUD0_MULTILAYER
+      worldPos.y += 64.0;
+    #else
+      worldPos = vec3(0.0, 0.0, 0.0);
+      alpha = 0.0;
+    #endif
+  }
+
+  v_color0 = vec4(col, alpha);
+  gl_Position = mul(u_viewProj, vec4(worldPos, 1.0));
 }
