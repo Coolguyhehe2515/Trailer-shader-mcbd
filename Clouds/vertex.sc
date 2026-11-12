@@ -7,7 +7,6 @@ $output v_color0
 #include <bgfx_shader.sh>
 #include <main.sh>
 
-uniform vec4 FogColor;
 uniform vec4 FogAndDistanceControl;
 uniform vec4 TimeOfDay;
 
@@ -25,9 +24,10 @@ void main() {
   pos.y *= mix(AURELIA_CLOUD0_THICKNESS, AURELIA_CLOUD0_RAIN_THICKNESS, rain);
   vec3 worldPos = mul(model, vec4(pos, 1.0)).xyz;
 
+  vec3 fogCol = vec3(0.45, 0.5, 0.56);
   vec3 sunDir = aureliaSunDir(TimeOfDay.x);
-  vec3 zenith = aureliaSkyColor(vec3(0.0, 1.0, 0.0), FogColor.rgb, sunDir);
-  vec3 horizonEdge = aureliaSkyHorizon(FogColor.rgb, sunDir);
+  vec3 zenith = aureliaSkyColor(vec3(0.0, 1.0, 0.0), fogCol, sunDir);
+  vec3 horizonEdge = aureliaSkyHorizon(fogCol, sunDir);
 
   float cloudFadeY = smoothstep(0.0, 1.0, a_position.y);
   vec3 col = zenith + horizonEdge;
