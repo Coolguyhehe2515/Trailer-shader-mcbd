@@ -51,6 +51,12 @@ float aureliaCloudShape(highp vec2 cell) {
 }
 
 vec4 aureliaCloudsVolume(vec3 dir, highp vec2 camXZ, highp float time, vec3 sunDir, vec3 fogColor) {
+  #ifdef AURELIA_GEO_CLOUDS
+    return vec4(0.0, 0.0, 0.0, 0.0);
+  #endif
+  float up = dir.y;
+
+vec4 aureliaCloudsVolume(vec3 dir, highp vec2 camXZ, highp float time, vec3 sunDir, vec3 fogColor) {
   float up = dir.y;
   float horizon = smoothstep(0.03, 0.3, up);
   if (horizon <= 0.0) {
