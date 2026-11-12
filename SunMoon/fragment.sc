@@ -17,8 +17,13 @@ void main() {
     float vis = 1.0 - tr * tr;
 
     if (v_isSun > 0.5) {
-      vec4 sun = aureliaSunDisc(v_texcoord0, aureliaSunDir(TimeOfDay.x).y);
-      gl_FragColor = vec4(sun.rgb, sun.a * vis);
+      vec4 sun = texture2D(s_SunMoonTexture, v_texcoord0);
+      float sunY = aureliaSunDir(TimeOfDay.x).y;
+      vec3 sunTint = mix(vec3(1.0, 0.6, 0.35), vec3(1.0, 1.0, 1.0), smoothstep(0.0, 0.35, sunY));
+      sun.rgb *= SunMoonColor.rgb * sunTint * AURELIA_SUN_BRIGHTNESS;
+      sun.rgb = aureliaColorGrade(sun.rgb);
+      sun.a *= vis;
+      gl_FragColor = sun;
     } else {
       vec4 moon = texture2D(s_SunMoonTexture, v_texcoord0);
       moon.rgb *= SunMoonColor.rgb * AURELIA_MOON_BRIGHTNESS;
