@@ -22,4 +22,13 @@ vec4 aureliaSunDisc(vec2 uv, float sunY) {
   return vec4(col, m);
 }
 
+vec3 aureliaMoonGlow(vec3 dir, vec3 sunDir, float rain) {
+  vec3 moonDir = -sunDir;
+  float night = smoothstep(-0.05, 0.25, moonDir.y);
+  float g = max(dot(dir, moonDir), 0.0);
+  float core = pow(g, AURELIA_MOON_GLOW_POWER) * AURELIA_MOON_GLOW_AMOUNT;
+  float halo = pow(g, AURELIA_MOON_HALO_POWER) * AURELIA_MOON_HALO_AMOUNT;
+  return AURELIA_MOON_GLOW_COLOR * (core + halo) * night * (1.0 - 0.7 * rain);
+}
+
 #endif
