@@ -5,6 +5,8 @@ from importlib import import_module
 
 from lazurite.compiler.macro_define import MacroDefine
 
+from subpacks import SUBPACKS
+
 lp = import_module('lazurite.project.project')
 
 stage = '.stage'
@@ -81,14 +83,46 @@ lp.compile(
     defines=[]
 )
 
-sub = os.path.join('pack', 'subpacks', 'no_load_anim', 'renderer', 'materials')
-os.makedirs(sub, exist_ok=True)
+subpacks_dir = os.path.join('pack', 'subpacks')
+if os.path.isdir(subpacks_dir):
+    shutil.rmtree(subpacks_dir)
 
-lp.compile(
-    project_path=stage,
-    profiles=[profile],
-    output_folder=sub,
-    material_patterns=[],
-    shaderc_path=shaderc,
-    defines=[MacroDefine.from_string('AURELIA_NO_LOAD_ANIM')]
-            )
+manifest_subpacks = []
+
+for i, sp in enumerate(SUBPACKS):
+    patterns = []
+    for m in sp.get('materials', []):
+        mat_path = os.path.join(stage, m)
+        if not os.path.isdir(mat_path):
+            raise SystemExit('Material ' + m + ' does not exist (subpack ' + sp['folder'] + ')')
+        patterns.append(mat_path)
+
+    sp_out = os.path.join(subpacks_dir, sp['folder'], 'renderer', 'materials')
+    os.makedirs(sp_out, exist_ok=True)
+
+    lp.compile(
+        project_path=stage,
+        profiles=[profile],
+        output_folder=sp_out,
+        material_patterns=patterns,
+        shaderc_path=shaderc,
+        defines=[MacroDefine.from_string(d) for d in sp['defines']]
+    )
+
+    manifest_subpacks.append({
+        'folder_name': sp['folder'],
+        'name': sp['name'],
+        'memory_tier': i + 1,
+    })
+
+manifest_path = os.path.join('pack', 'manifest.json')
+with open(manifest_path, encoding='utf-8') as f:
+    manifest = json.load(f)
+
+if manifest_subpacks:
+    manifest['subpacks'] = manifest_subpacks
+else:
+    manifest.pop('subpacks', None)
+
+with open(manifest_path, 'w', encoding='utf-8') as f:
+    json.dump(manifest, f, indent=2)
