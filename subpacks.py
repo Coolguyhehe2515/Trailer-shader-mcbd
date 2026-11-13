@@ -5,5 +5,4 @@ SUBPACKS = [
         'defines': ['AURELIA_PRESET_NO_ANIM'],
         'materials': ['RenderChunk'],
     },
-
 ]
