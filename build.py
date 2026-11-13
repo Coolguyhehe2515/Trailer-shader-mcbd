@@ -89,30 +89,39 @@ if os.path.isdir(subpacks_dir):
 
 manifest_subpacks = []
 
-for i, sp in enumerate(SUBPACKS):
-    patterns = []
-    for m in sp.get('materials', []):
-        mat_path = os.path.join(stage, m)
-        if not os.path.isdir(mat_path):
-            raise SystemExit('Material ' + m + ' does not exist (subpack ' + sp['folder'] + ')')
-        patterns.append(mat_path)
+for sp in SUBPACKS:
+    sp_dir = os.path.join(subpacks_dir, sp['folder'])
+    sp_out = os.path.join(sp_dir, 'renderer', 'materials')
+    os.makedirs(sp_dir, exist_ok=True)
 
-    sp_out = os.path.join(subpacks_dir, sp['folder'], 'renderer', 'materials')
-    os.makedirs(sp_out, exist_ok=True)
+    mats = sp.get('materials')
 
-    lp.compile(
-        project_path=stage,
-        profiles=[profile],
-        output_folder=sp_out,
-        material_patterns=patterns,
-        shaderc_path=shaderc,
-        defines=[MacroDefine.from_string(d) for d in sp['defines']]
-    )
+    if mats is not None and len(mats) == 0:
+        with open(os.path.join(sp_dir, 'subpack.txt'), 'w') as f:
+            f.write(sp['name'])
+    else:
+        patterns = []
+        for m in (mats or []):
+            mat_path = os.path.join(stage, m)
+            if not os.path.isdir(mat_path):
+                raise SystemExit('Material ' + m + ' does not exist (subpack ' + sp['folder'] + ')')
+            patterns.append(mat_path)
+
+        os.makedirs(sp_out, exist_ok=True)
+
+        lp.compile(
+            project_path=stage,
+            profiles=[profile],
+            output_folder=sp_out,
+            material_patterns=patterns,
+            shaderc_path=shaderc,
+            defines=[MacroDefine.from_string(d) for d in sp['defines']]
+        )
 
     manifest_subpacks.append({
         'folder_name': sp['folder'],
         'name': sp['name'],
-        'memory_tier': i + 1,
+        'memory_tier': 1,
     })
 
 manifest_path = os.path.join('pack', 'manifest.json')
