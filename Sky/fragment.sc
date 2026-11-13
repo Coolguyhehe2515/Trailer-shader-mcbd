@@ -46,6 +46,7 @@ void main() {
     #endif
 
     vec3 outCol = aureliaColorGrade(sky);
+    sky += aureliaMoonGlow(dir, sunDir, aureliaRain);
 
     if (!underwater) {
       vec3 horizonCol = aureliaSkyHorizon(vec3(0.45, 0.5, 0.56), sunDir);
