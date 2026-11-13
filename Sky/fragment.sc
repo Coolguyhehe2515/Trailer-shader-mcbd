@@ -35,24 +35,12 @@ void main() {
       #ifdef AURELIA_GODRAYS
         sky += aureliaGodrays(dir * AURELIA_GODRAY_SKY_SIGN, sunDir, CameraPosition.xz, ViewPositionAndTime.w);
       #endif
-    }
 
-    #ifndef AURELIA_GEO_CLOUDS
-    if (!underwater) {
-      vec3 horizonCol = aureliaSkyHorizon(vec3(0.45, 0.5, 0.56), sunDir);
-      vec4 c = aureliaCloudsVolume(dir, CameraPosition.xz, ViewPositionAndTime.w, sunDir, horizonCol);
-      outCol = mix(outCol, aureliaColorGrade(c.rgb), c.a);
+      sky += aureliaMoonGlow(dir, sunDir, aureliaRain);
+      sky += aureliaShootingStars(dir, ViewPositionAndTime.w, sunDir);
     }
-    #endif
 
     vec3 outCol = aureliaColorGrade(sky);
-    sky += aureliaMoonGlow(dir, sunDir, aureliaRain);
-
-    if (!underwater) {
-      vec3 horizonCol = aureliaSkyHorizon(vec3(0.45, 0.5, 0.56), sunDir);
-      vec4 c = aureliaCloudsVolume(dir, CameraPosition.xz, ViewPositionAndTime.w, sunDir, horizonCol);
-      outCol = mix(outCol, aureliaColorGrade(c.rgb), c.a);
-    }
 
     gl_FragColor = vec4(outCol, 1.0);
   #else
