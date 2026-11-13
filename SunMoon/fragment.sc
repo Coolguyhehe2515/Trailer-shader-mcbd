@@ -26,8 +26,11 @@ void main() {
       gl_FragColor = sun;
     } else {
       vec4 moon = texture2D(s_SunMoonTexture, v_texcoord0);
-      moon.rgb *= SunMoonColor.rgb * AURELIA_MOON_BRIGHTNESS;
-      moon.rgb = aureliaColorGrade(moon.rgb);
+      vec3 m = moon.rgb * SunMoonColor.rgb;
+      float l = dot(m, vec3(0.299, 0.587, 0.114));
+      m = mix(m, vec3(l, l, l), AURELIA_MOON_WHITEN);
+      m *= AURELIA_MOON_BRIGHTNESS * (1.0 + l * AURELIA_MOON_HOT);
+      moon.rgb = aureliaColorGrade(m);
       moon.a *= vis;
       gl_FragColor = moon;
     }
