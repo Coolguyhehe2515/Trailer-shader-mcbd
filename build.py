@@ -3,6 +3,8 @@ import os
 import shutil
 from importlib import import_module
 
+from lazurite.compiler.macro_define import MacroDefine
+
 lp = import_module('lazurite.project.project')
 
 stage = '.stage'
@@ -64,14 +66,29 @@ for name in os.listdir(stage):
         with open(os.path.join(uniforms, uniform + '.json'), 'w') as f:
             json.dump(entry, f, indent=2)
 
+profile = os.environ.get('PROFILE', 'android')
+shaderc = os.path.abspath(os.environ.get('SHADERC_PATH', os.path.join('tools', 'shaderc')))
+
 out = os.path.join('pack', 'renderer', 'materials')
 os.makedirs(out, exist_ok=True)
 
 lp.compile(
     project_path=stage,
-    profiles=[os.environ.get('PROFILE', 'android')],
+    profiles=[profile],
     output_folder=out,
     material_patterns=[],
-    shaderc_path=os.path.abspath(os.environ.get('SHADERC_PATH', os.path.join('tools', 'shaderc'))),
+    shaderc_path=shaderc,
     defines=[]
 )
+
+sub = os.path.join('pack', 'subpacks', 'no_load_anim', 'renderer', 'materials')
+os.makedirs(sub, exist_ok=True)
+
+lp.compile(
+    project_path=stage,
+    profiles=[profile],
+    output_folder=sub,
+    material_patterns=[],
+    shaderc_path=shaderc,
+    defines=[MacroDefine.from_string('AURELIA_NO_LOAD_ANIM')]
+            )
