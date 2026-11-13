@@ -41,7 +41,6 @@ vec3 aureliaShootingStars(vec3 dir, highp float time, vec3 sunDir) {
   }
 
   highp vec2 uv = dir.xz / (dir.y + 0.25);
-  uv = (floor(uv * AURELIA_SHOOT_PIXELS) + 0.5) / AURELIA_SHOOT_PIXELS;
 
   float s = aureliaShootOne(uv, time, 1.0) + aureliaShootOne(uv, time, 2.0);
   return AURELIA_SHOOT_COLOR * s * vis * AURELIA_SHOOT_BRIGHTNESS;
