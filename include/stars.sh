@@ -29,8 +29,8 @@ float aureliaShootOne(highp vec2 uv, highp float time, float seed) {
   float dist = length(uv - (tailPt + d * AURELIA_SHOOT_TAIL * t));
 
   float width = AURELIA_SHOOT_WIDTH * (0.4 + 0.6 * t);
-  float line = 1.0 - smoothstep(0.0, width, dist);
-  return line * t * t * sin(f * 3.14159265);
+  float streak = 1.0 - smoothstep(0.0, width, dist);
+  return streak * t * t * sin(f * 3.14159265);
 }
 
 vec3 aureliaShootingStars(vec3 dir, highp float time, vec3 sunDir) {
